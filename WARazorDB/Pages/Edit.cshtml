@@ -1,0 +1,188 @@
+﻿@page
+@model WARazorDB.Pages.EditModel
+
+@{
+    ViewData["Title"] = "Editar Tarea";
+}
+
+<div class="content-container">
+    <h1 class="tareas-title">Editar Tarea</h1>
+
+    @if (!string.IsNullOrEmpty(TempData["ErrorMessage"] as string))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card border shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-4"></div>
+                        
+                        <input type="hidden" asp-for="Tarea.Id" />
+                        
+                        <div class="mb-4">
+                            <label asp-for="Tarea.nombreTarea" class="form-label fw-medium">Nombre de la Tarea</label>
+                            <input asp-for="Tarea.nombreTarea" class="form-control form-control-lg" placeholder="Ingrese el nombre de la tarea" />
+                            <span asp-validation-for="Tarea.nombreTarea" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label asp-for="Tarea.fechaVencimiento" class="form-label fw-medium">Fecha de Vencimiento</label>
+                            <div class="input-group">
+                                <input asp-for="Tarea.fechaVencimiento" class="form-control form-control-lg" type="date" />
+                                <span class="input-group-text">
+                                    <i class="fas fa-calendar"></i>
+                                </span>
+                            </div>
+                            <span asp-validation-for="Tarea.fechaVencimiento" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label asp-for="Tarea.estado" class="form-label fw-medium">Estado</label>
+                            <div class="dropdown-select-wrapper">
+                                <select asp-for="Tarea.estado" class="form-select form-select-lg">
+                                    <option value="pendiente">Pendiente</option>
+                                    <option value="en curso">En curso</option>
+                                    <option value="finalizado">Finalizado</option>
+                                    <option value="cancelado">Cancelado</option>
+                                </select>
+                                <span class="dropdown-select-arrow">
+                                    <i class="fas fa-chevron-down"></i>
+                                </span>
+                            </div>
+                            <span asp-validation-for="Tarea.estado" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label asp-for="Tarea.idUsuario" class="form-label fw-medium">ID Usuario</label>
+                            <input asp-for="Tarea.idUsuario" class="form-control form-control-lg" />
+                            <span asp-validation-for="Tarea.idUsuario" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-start mt-5">
+                            <a asp-page="./Index" class="btn btn-outline-secondary btn-lg me-2">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg" style="background-color: var(--vivid-purple); border-color: var(--vivid-purple);">
+                                <i class="fas fa-save me-2"></i>Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-5">
+            <div class="card border-0 bg-light h-100">
+                <div class="card-body p-4">
+                    <h5 class="d-flex align-items-center" style="color: var(--vivid-purple);">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <span>Información de la Tarea</span>
+                    </h5>
+                    <p class="text-muted">Está editando la tarea #@Model.Tarea.Id</p>
+                    <hr class="my-3">
+                    
+                    <div class="mb-4">
+                        <h6 class="d-flex align-items-center">
+                            <i class="fas fa-clock me-2" style="color: var(--vivid-purple);"></i>
+                            <span>Estado Actual</span>
+                        </h6>
+                        @{
+                            string badgeClass = Model.Tarea.estado.ToLower() switch
+                            {
+                                "pendiente" => "bg-light text-dark",
+                                "en curso" => "bg-info text-white",
+                                "finalizado" => "bg-success text-white",
+                                "cancelado" => "bg-danger text-white",
+                                _ => "bg-light text-dark"
+                            };
+                            
+                            string badgeStyle = Model.Tarea.estado.ToLower() switch
+                            {
+                                "pendiente" => "background-color: var(--pendiente-bg) !important; color: var(--pendiente-text) !important;",
+                                "en curso" => "background-color: var(--en-curso-bg) !important; color: var(--en-curso-text) !important;",
+                                "finalizado" => "background-color: var(--finalizado-bg) !important; color: var(--finalizado-text) !important;",
+                                "cancelado" => "background-color: var(--cancelado-bg) !important; color: var(--cancelado-text) !important;",
+                                _ => "background-color: var(--pendiente-bg) !important; color: var(--pendiente-text) !important;"
+                            };
+                        }
+                        <span class="badge @badgeClass" style="font-size: 1rem; @badgeStyle padding: 8px 16px; border-radius: 30px;">
+                            @Model.Tarea.estado
+                        </span>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="d-flex align-items-center">
+                            <i class="fas fa-calendar-alt me-2" style="color: var(--vivid-purple);"></i>
+                            <span>Fecha de Vencimiento</span>
+                        </h6>
+                        <p class="ms-4 mb-0">@Model.Tarea.fechaVencimiento.ToString("dd/MM/yyyy")</p>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex gap-2 mt-4">
+                        <a asp-page="./Details" asp-route-id="@Model.Tarea.Id" class="btn-action-large btn-view">
+                            <i class="fas fa-eye"></i> Ver Detalles
+                        </a>
+                        <a asp-page="./Delete" asp-route-id="@Model.Tarea.Id" class="btn-action-large btn-delete">
+                            <i class="fas fa-trash-alt"></i> Eliminar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Establecer la fecha actual como mínima para el campo de fecha
+            const fechaInput = document.querySelector('input[type="date"]');
+            if (fechaInput) {
+                const hoy = new Date();
+                const dia = String(hoy.getDate()).padStart(2, '0');
+                const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+                const anio = hoy.getFullYear();
+                const fechaActual = `${anio}-${mes}-${dia}`;
+                
+                // Solo establecer el mínimo si la fecha de vencimiento es futura
+                const fechaVencimiento = new Date(fechaInput.value);
+                if (fechaVencimiento >= hoy) {
+                    fechaInput.setAttribute('min', fechaActual);
+                }
+            }
+            
+            // Convertir valores de estado a minúsculas para el select
+            const estadoSelect = document.querySelector('select[name="Tarea.estado"]');
+            if (estadoSelect) {
+                Array.from(estadoSelect.options).forEach(option => {
+                    if (option.value === option.value.toLowerCase()) {
+                        return;
+                    }
+                    option.value = option.value.toLowerCase();
+                });
+                
+                // Asegurar que el valor seleccionado esté en minúsculas
+                estadoSelect.value = estadoSelect.value.toLowerCase();
+            }
+            
+            // Ocultar alertas después de 5 segundos
+            const alertas = document.querySelectorAll('.alert');
+            alertas.forEach(function(alerta) {
+                setTimeout(function() {
+                    const bsAlert = new bootstrap.Alert(alerta);
+                    bsAlert.close();
+                }, 5000);
+            });
+        });
+    </script>
+}

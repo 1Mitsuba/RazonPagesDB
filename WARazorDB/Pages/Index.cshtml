@@ -1,10 +1,328 @@
 ﻿@page
-@model IndexModel
+@model WARazorDB.Pages.IndexModel
+
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Tareas";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="content-container">
+    <h1 class="tareas-title">Tareas Asignadas</h1>
+
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i> @Model.SuccessMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i> @Model.ErrorMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex align-items-center">
+            <h5 class="mb-0 me-3">Lista de Tareas Activas</h5>
+            <div>
+                <a asp-page="./Concluida" class="badge bg-success text-decoration-none me-2">
+                    <i class="fas fa-check-circle me-1"></i> Ver Tareas Finalizadas (@Model.TareasCompletadas)
+                </a>
+                <a asp-page="./Cancelada" class="badge bg-danger text-decoration-none">
+                    <i class="fas fa-ban me-1"></i> Ver Tareas Canceladas (@Model.TareasCanceladas)
+                </a>
+            </div>
+        </div>
+        <div class="d-flex align-items-center">
+            <!-- Cambiado de botón modal a enlace a la página Create -->
+            <a asp-page="./Create" class="btn btn-crear-tarea me-3">
+                <i class="fas fa-plus me-1"></i> Nueva Tarea
+            </a>
+            <form method="get" class="search-container">
+                <input type="hidden" name="pagina" value="1" />
+                <input type="hidden" name="tamanoPagina" value="@Model.TamanoPagina" />
+                <input type="hidden" name="estado" value="@Model.Estado" />
+                
+                <i class="fas fa-search"></i>
+                <input type="text" name="buscar" class="form-control" placeholder="Buscar tarea..." value="@Model.Buscar">
+            </form>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+        <div class="d-flex align-items-center">
+            <div class="items-per-page me-3">
+                <form method="get" id="formTamanoPagina">
+                    <input type="hidden" name="pagina" value="1" />
+                    <input type="hidden" name="buscar" value="@Model.Buscar" />
+                    <input type="hidden" name="estado" value="@Model.Estado" />
+                    
+                    <label for="tamanoPagina">Mostrar:</label>
+                    <select id="tamanoPagina" name="tamanoPagina" class="form-select-sm" onchange="this.form.submit()">
+                        @foreach (var opcion in Model.OpcionesTamanoPagina)
+                        {
+                            if (Model.TamanoPagina == opcion)
+                            {
+                                <option value="@opcion" selected>@opcion</option>
+                            }
+                            else
+                            {
+                                <option value="@opcion">@opcion</option>
+                            }
+                        }
+                    </select>
+                    <span>tareas por página</span>
+                </form>
+            </div>
+        </div>
+
+        <div>
+            @if (Model.TotalTareas > 0)
+            {
+                <span class="text-muted">
+                    Mostrando @((Model.PaginaActual - 1) * Model.TamanoPagina + 1) - @Math.Min(Model.PaginaActual * Model.TamanoPagina, Model.TotalTareas) de @Model.TotalTareas tareas
+                </span>
+            }
+            else
+            {
+                <span class="text-muted">No se encontraron tareas</span>
+            }
+        </div>
+    </div>
+
+    @if (Model.TotalTareas == 0)
+    {
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle me-2"></i> 
+            @if (!string.IsNullOrEmpty(Model.Buscar))
+            {
+                <span>No hay tareas que coincidan con los criterios de búsqueda. Intenta cambiar los filtros.</span>
+            }
+            else
+            {
+                <span>No hay tareas pendientes o en curso. ¡Buen trabajo!</span>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover border">
+                <thead>
+                    <tr>
+                        <th>Nombre Tarea</th>
+                        <th>Fecha Vencimiento</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Tareas)
+                    {
+                        <tr>
+                            <td>@item.nombreTarea</td>
+                            <td>@item.fechaVencimiento.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                @{
+                                    string badgeClass = "";
+                                    
+                                    switch (item.estado?.ToLower())
+                                    {
+                                        case "pendiente":
+                                            badgeClass = "badge bg-warning";
+                                            break;
+                                        case "en curso":
+                                            badgeClass = "badge bg-info";
+                                            break;
+                                        default:
+                                            badgeClass = "badge bg-warning";
+                                            break;
+                                    }
+                                }
+                                <span class="@badgeClass">@item.estado</span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a asp-page="./Details" asp-route-id="@item.Id" class="btn-action btn-view" title="Ver detalles" data-bs-toggle="tooltip">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <form method="post" asp-page-handler="Completar" asp-route-id="@item.Id" class="d-inline">
+                                        <input type="hidden" name="pagina" value="@Model.PaginaActual" />
+                                        <input type="hidden" name="tamanoPagina" value="@Model.TamanoPagina" />
+                                        <input type="hidden" name="buscar" value="@Model.Buscar" />
+                                        <input type="hidden" name="estado" value="@Model.Estado" />
+                                        <button type="submit" class="btn-action btn-complete" title="Completar" data-bs-toggle="tooltip">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                    <form method="post" asp-page-handler="Cancelar" asp-route-id="@item.Id" class="d-inline">
+                                        <input type="hidden" name="pagina" value="@Model.PaginaActual" />
+                                        <input type="hidden" name="tamanoPagina" value="@Model.TamanoPagina" />
+                                        <input type="hidden" name="buscar" value="@Model.Buscar" />
+                                        <input type="hidden" name="estado" value="@Model.Estado" />
+                                        <button type="submit" class="btn-action btn-cancel" title="Cancelar" data-bs-toggle="tooltip">
+                                            <i class="fas fa-ban"></i>
+                                        </button>
+                                    </form>
+                                    <a asp-page="./Edit" asp-route-id="@item.Id" class="btn-action btn-edit" title="Editar" data-bs-toggle="tooltip">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación mejorada -->
+        @if (Model.TotalPaginas > 1)
+        {
+            <div class="d-flex justify-content-center mt-4">
+                <nav aria-label="Navegación de tareas">
+                    <ul class="pagination pagination-md">
+                        <!-- Botón de primera página -->
+                        @if (Model.PaginaActual > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" 
+                                   asp-page="./Index" 
+                                   asp-route-pagina="1" 
+                                   asp-route-tamanoPagina="@Model.TamanoPagina"
+                                   asp-route-buscar="@Model.Buscar"
+                                   asp-route-estado="@Model.Estado"
+                                   aria-label="Primera">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="fas fa-angle-double-left"></i></span>
+                            </li>
+                        }
+                        
+                        <!-- Botón de página anterior -->
+                        @if (Model.PaginaActual > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" 
+                                   asp-page="./Index" 
+                                   asp-route-pagina="@(Model.PaginaActual - 1)" 
+                                   asp-route-tamanoPagina="@Model.TamanoPagina"
+                                   asp-route-buscar="@Model.Buscar"
+                                   asp-route-estado="@Model.Estado"
+                                   aria-label="Anterior">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="fas fa-angle-left"></i></span>
+                            </li>
+                        }
+                        
+                        <!-- Números de página -->
+                        @foreach (var numeroPagina in Model.PaginasVisibles)
+                        {
+                            if (numeroPagina == -1)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="page-item @(numeroPagina == Model.PaginaActual ? "active" : "")">
+                                    <a class="page-link" 
+                                       asp-page="./Index" 
+                                       asp-route-pagina="@numeroPagina" 
+                                       asp-route-tamanoPagina="@Model.TamanoPagina"
+                                       asp-route-buscar="@Model.Buscar"
+                                       asp-route-estado="@Model.Estado">
+                                        @numeroPagina
+                                    </a>
+                                </li>
+                            }
+                        }
+                        
+                        <!-- Botón de página siguiente -->
+                        @if (Model.PaginaActual < Model.TotalPaginas)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" 
+                                   asp-page="./Index" 
+                                   asp-route-pagina="@(Model.PaginaActual + 1)" 
+                                   asp-route-tamanoPagina="@Model.TamanoPagina"
+                                   asp-route-buscar="@Model.Buscar"
+                                   asp-route-estado="@Model.Estado"
+                                   aria-label="Siguiente">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="fas fa-angle-right"></i></span>
+                            </li>
+                        }
+                        
+                        <!-- Botón de última página -->
+                        @if (Model.PaginaActual < Model.TotalPaginas)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" 
+                                   asp-page="./Index" 
+                                   asp-route-pagina="@Model.TotalPaginas" 
+                                   asp-route-tamanoPagina="@Model.TamanoPagina"
+                                   asp-route-buscar="@Model.Buscar"
+                                   asp-route-estado="@Model.Estado"
+                                   aria-label="Última">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="fas fa-angle-double-right"></i></span>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            </div>
+            
+            <div class="text-center mt-2">
+                <span class="text-muted small">Página @Model.PaginaActual de @Model.TotalPaginas</span>
+            </div>
+        }
+    }
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+                new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+            
+            // Ocultar alertas después de 5 segundos
+            const alertas = document.querySelectorAll('.alert');
+            alertas.forEach(function(alerta) {
+                setTimeout(function() {
+                    const bsAlert = new bootstrap.Alert(alerta);
+                    bsAlert.close();
+                }, 5000);
+            });
+        });
+    </script>
+}

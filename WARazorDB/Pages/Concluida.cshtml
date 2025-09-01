@@ -1,0 +1,230 @@
+@page
+@model WARazorDB.Pages.ConcluidaModel
+
+@{
+    ViewData["Title"] = "Tareas Finalizadas";
+}
+
+<div class="content-container">
+    <h1 class="tareas-title">Tareas Finalizadas</h1>
+
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i> @Model.SuccessMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i> @Model.ErrorMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex align-items-center">
+            <h5 class="mb-0 me-3">Lista de Tareas Finalizadas</h5>
+            <a asp-page="/Index" class="badge bg-primary text-decoration-none">
+                <i class="fas fa-tasks me-1"></i> Ver Tareas Activas
+            </a>
+        </div>
+        <div class="d-flex align-items-center">
+            <form method="get" class="search-container">
+                <input type="hidden" name="pagina" value="1" />
+                <input type="hidden" name="tamanoPagina" value="@Model.TamanoPagina" />
+                
+                <i class="fas fa-search"></i>
+                <input type="text" name="buscar" class="form-control" placeholder="Buscar tarea..." value="@Model.Buscar">
+            </form>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+        <div class="d-flex align-items-center">
+            <div class="items-per-page me-3">
+                <form method="get" id="formTamanoPagina">
+                    <input type="hidden" name="pagina" value="1" />
+                    <input type="hidden" name="buscar" value="@Model.Buscar" />
+                    
+                    <label for="tamanoPagina">Mostrar:</label>
+                    <select id="tamanoPagina" name="tamanoPagina" class="form-select-sm" onchange="this.form.submit()">
+                        @foreach (var opcion in Model.OpcionesTamanoPagina)
+                        {
+                            if (Model.TamanoPagina == opcion)
+                            {
+                                <option value="@opcion" selected>@opcion</option>
+                            }
+                            else
+                            {
+                                <option value="@opcion">@opcion</option>
+                            }
+                        }
+                    </select>
+                    <span>tareas por página</span>
+                </form>
+            </div>
+        </div>
+
+        <div>
+            @if (Model.TotalTareas > 0)
+            {
+                <span class="text-muted">
+                    Mostrando @((Model.PaginaActual - 1) * Model.TamanoPagina + 1) - @Math.Min(Model.PaginaActual * Model.TamanoPagina, Model.TotalTareas) de @Model.TotalTareas tareas finalizadas
+                </span>
+            }
+            else
+            {
+                <span class="text-muted">No se encontraron tareas finalizadas</span>
+            }
+        </div>
+    </div>
+
+    @if (Model.TotalTareas == 0)
+    {
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle me-2"></i> 
+            @if (!string.IsNullOrEmpty(Model.Buscar))
+            {
+                <span>No hay tareas finalizadas que coincidan con los criterios de búsqueda.</span>
+            }
+            else
+            {
+                <span>No hay tareas finalizadas en el sistema.</span>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover border">
+                <thead>
+                    <tr>
+                        <th>Nombre Tarea</th>
+                        <th>Fecha Vencimiento</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Tareas)
+                    {
+                        <tr>
+                            <td>@item.nombreTarea</td>
+                            <td>@item.fechaVencimiento.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <span class="badge bg-success">Finalizado</span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a asp-page="./Details" asp-route-id="@item.Id" class="btn-action btn-view" title="Ver detalles" data-bs-toggle="tooltip">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a asp-page="./Delete" asp-route-id="@item.Id" class="btn-action btn-cancel" title="Eliminar" data-bs-toggle="tooltip">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        @if (Model.TotalPaginas > 1)
+        {
+            <div class="d-flex justify-content-center mt-4">
+                <nav>
+                    <ul class="pagination justify-content-center mb-0">
+                        @if (Model.PaginaActual > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" 
+                                   asp-page="./Concluida" 
+                                   asp-route-pagina="@(Model.PaginaActual - 1)" 
+                                   asp-route-tamanoPagina="@Model.TamanoPagina"
+                                   asp-route-buscar="@Model.Buscar">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        }
+                        
+                        @{
+                            int startPage = 1;
+                            int endPage = Model.TotalPaginas;
+                            
+                            if (Model.TotalPaginas > 7)
+                            {
+                                if (Model.PaginaActual <= 4)
+                                {
+                                    startPage = 1;
+                                    endPage = 7;
+                                }
+                                else if (Model.PaginaActual > Model.TotalPaginas - 4)
+                                {
+                                    startPage = Model.TotalPaginas - 6;
+                                    endPage = Model.TotalPaginas;
+                                }
+                                else
+                                {
+                                    startPage = Model.PaginaActual - 3;
+                                    endPage = Model.PaginaActual + 3;
+                                }
+                            }
+                        }
+                        
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == Model.PaginaActual ? "active" : "")">
+                                <a class="page-link" 
+                                   asp-page="./Concluida" 
+                                   asp-route-pagina="@i" 
+                                   asp-route-tamanoPagina="@Model.TamanoPagina"
+                                   asp-route-buscar="@Model.Buscar">
+                                    @i
+                                </a>
+                            </li>
+                        }
+                        
+                        @if (Model.PaginaActual < Model.TotalPaginas)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" 
+                                   asp-page="./Concluida" 
+                                   asp-route-pagina="@(Model.PaginaActual + 1)" 
+                                   asp-route-tamanoPagina="@Model.TamanoPagina"
+                                   asp-route-buscar="@Model.Buscar">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            </div>
+        }
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+                new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+            
+            // Ocultar alertas después de 5 segundos
+            const alertas = document.querySelectorAll('.alert');
+            alertas.forEach(function(alerta) {
+                setTimeout(function() {
+                    const bsAlert = new bootstrap.Alert(alerta);
+                    bsAlert.close();
+                }, 5000);
+            });
+        });
+    </script>
+}

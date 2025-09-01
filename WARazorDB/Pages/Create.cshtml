@@ -1,0 +1,220 @@
+﻿@page
+@model WARazorDB.Pages.CreateModel
+
+@{
+    ViewData["Title"] = "Nueva Tarea";
+}
+
+<div class="content-container">
+    <h1 class="tareas-title">Nueva Tarea</h1>
+
+    @if (!string.IsNullOrEmpty(TempData["ErrorMessage"] as string))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        @if (Model.ValidationErrors != null && Model.ValidationErrors.Any())
+        {
+            <div class="alert alert-warning">
+                <ul class="mb-0">
+                    @foreach (var error in Model.ValidationErrors)
+                    {
+                        <li>@error</li>
+                    }
+                </ul>
+            </div>
+        }
+    }
+
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card border shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post" id="createTaskForm" novalidate>
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-4"></div>
+                        
+                        <div class="mb-4">
+                            <label asp-for="Tarea.nombreTarea" class="form-label fw-medium">Nombre de la Tarea</label>
+                            <input asp-for="Tarea.nombreTarea" class="form-control form-control-lg" placeholder="Ingrese el nombre de la tarea" minlength="3" maxlength="100" required />
+                            <span asp-validation-for="Tarea.nombreTarea" class="text-danger"></span>
+                            <small class="form-text text-muted">El nombre debe tener entre 3 y 100 caracteres.</small>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label asp-for="Tarea.fechaVencimiento" class="form-label fw-medium">Fecha de Vencimiento</label>
+                            <div class="input-group">
+                                <input asp-for="Tarea.fechaVencimiento" class="form-control form-control-lg" type="date" required />
+                                <span class="input-group-text">
+                                    <i class="fas fa-calendar"></i>
+                                </span>
+                            </div>
+                            <span asp-validation-for="Tarea.fechaVencimiento" class="text-danger"></span>
+                            <small class="form-text text-muted">La fecha debe ser igual o posterior a hoy.</small>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label asp-for="Tarea.estado" class="form-label fw-medium">Estado</label>
+                            <div class="dropdown-select-wrapper">
+                                <select asp-for="Tarea.estado" class="form-select form-select-lg" required>
+                                    <option value="pendiente">Pendiente</option>
+                                    <option value="en curso">En curso</option>
+                                </select>
+                                <span class="dropdown-select-arrow">
+                                    <i class="fas fa-chevron-down"></i>
+                                </span>
+                            </div>
+                            <span asp-validation-for="Tarea.estado" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label asp-for="Tarea.idUsuario" class="form-label fw-medium">ID Usuario</label>
+                            <input asp-for="Tarea.idUsuario" class="form-control form-control-lg" value="1" min="1" required />
+                            <span asp-validation-for="Tarea.idUsuario" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-start mt-5">
+                            <a asp-page="./Index" class="btn btn-outline-secondary btn-lg me-2">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg" style="background-color: var(--vivid-purple); border-color: var(--vivid-purple);">
+                                <i class="fas fa-save me-2"></i>Guardar Tarea
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-5">
+            <div class="card border-0 bg-light h-100">
+                <div class="card-body p-4">
+                    <h5 class="d-flex align-items-center" style="color: var(--vivid-purple);">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <span>Información de la Tarea</span>
+                    </h5>
+                    <hr class="my-3">
+                    
+                    <div class="mb-4">
+                        <h6 class="d-flex align-items-center">
+                            <i class="fas fa-clock me-2" style="color: var(--vivid-purple);"></i>
+                            <span>Estado Actual</span>
+                        </h6>
+                        <span class="badge" style="font-size: 1rem; background-color: var(--pendiente-bg) !important; color: var(--pendiente-text) !important; padding: 8px 16px; border-radius: 30px;">
+                            Pendiente
+                        </span>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="d-flex align-items-center">
+                            <i class="fas fa-calendar-alt me-2" style="color: var(--vivid-purple);"></i>
+                            <span>Fecha de Vencimiento</span>
+                        </h6>
+                        <p class="ms-4 mb-0">@DateTime.Today.ToString("dd/MM/yyyy")</p>
+                    </div>
+                    
+                    <hr class="my-3">
+                    
+                    <h6 class="d-flex align-items-center">
+                        <i class="fas fa-lightbulb me-2" style="color: var(--accent-color);"></i>
+                        <span>Consejos</span>
+                    </h6>
+                    <ul class="small text-muted ms-4">
+                        <li class="mb-2">Ingrese un nombre descriptivo para identificar fácilmente la tarea.</li>
+                        <li class="mb-2">Seleccione una fecha de vencimiento adecuada para establecer la prioridad.</li>
+                        <li>El estado "Pendiente" indica que la tarea aún no se ha iniciado.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Establecer la fecha actual como mínima para el campo de fecha
+            const fechaInput = document.querySelector('input[type="date"]');
+            if (fechaInput) {
+                const hoy = new Date();
+                const dia = String(hoy.getDate()).padStart(2, '0');
+                const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+                const anio = hoy.getFullYear();
+                const fechaActual = `${anio}-${mes}-${dia}`;
+                fechaInput.setAttribute('min', fechaActual);
+                fechaInput.value = fechaActual;
+            }
+            
+            // Ocultar alertas después de 7 segundos
+            const alertas = document.querySelectorAll('.alert');
+            alertas.forEach(function(alerta) {
+                setTimeout(function() {
+                    const bsAlert = new bootstrap.Alert(alerta);
+                    bsAlert.close();
+                }, 7000);
+            });
+            
+            // Validación del lado del cliente mejorada
+            const form = document.getElementById('createTaskForm');
+            
+            form.addEventListener('submit', function(event) {
+                let isValid = true;
+                const nombreInput = document.querySelector('input[name="Tarea.nombreTarea"]');
+                const fechaInput = document.querySelector('input[name="Tarea.fechaVencimiento"]');
+                
+                // Validar nombre
+                if (!nombreInput.value.trim()) {
+                    nombreInput.classList.add('is-invalid');
+                    const errorSpan = nombreInput.nextElementSibling;
+                    errorSpan.textContent = "El nombre de la tarea es obligatorio";
+                    isValid = false;
+                } else if (nombreInput.value.trim().length < 3) {
+                    nombreInput.classList.add('is-invalid');
+                    const errorSpan = nombreInput.nextElementSibling;
+                    errorSpan.textContent = "El nombre debe tener al menos 3 caracteres";
+                    isValid = false;
+                } else {
+                    nombreInput.classList.remove('is-invalid');
+                    nombreInput.classList.add('is-valid');
+                }
+                
+                // Validar fecha
+                const fechaValue = new Date(fechaInput.value);
+                const hoy = new Date();
+                hoy.setHours(0, 0, 0, 0);
+                
+                if (fechaValue < hoy) {
+                    fechaInput.classList.add('is-invalid');
+                    const errorSpan = fechaInput.parentElement.nextElementSibling;
+                    errorSpan.textContent = "La fecha debe ser igual o posterior a hoy";
+                    isValid = false;
+                } else {
+                    fechaInput.classList.remove('is-invalid');
+                    fechaInput.classList.add('is-valid');
+                }
+                
+                if (!isValid) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+            });
+            
+            // Validación en tiempo real
+            const nombreInput = document.querySelector('input[name="Tarea.nombreTarea"]');
+            nombreInput.addEventListener('input', function() {
+                if (this.value.trim().length >= 3) {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                    this.nextElementSibling.textContent = "";
+                } else {
+                    this.classList.remove('is-valid');
+                    this.classList.add('is-invalid');
+                    this.nextElementSibling.textContent = "El nombre debe tener al menos 3 caracteres";
+                }
+            });
+        });
+    </script>
+}

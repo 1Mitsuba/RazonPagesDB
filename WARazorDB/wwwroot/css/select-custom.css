@@ -1,0 +1,161 @@
+/* Estilos personalizados para selects */
+
+:root {
+  --primary-color: #a78bfa;
+  --secondary-color: #8b5cf6;
+  --accent-color: #6d28d9;
+  --light-purple: #c4b5fd;
+  --ultra-light-purple: #e9d5ff;
+  --dark-purple: #5b21b6;
+  --vivid-purple: #7c3aed;
+}
+
+/* Contenedor del select personalizado */
+.custom-select-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* Estilo para el select personalizado */
+.custom-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: white;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  padding: 0.5rem 2rem 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+  cursor: pointer;
+  width: 100%;
+  transition: border-color 0.15s ease-in-out;
+}
+
+/* Hover y focus del select */
+.custom-select:hover {
+  border-color: var(--primary-color);
+}
+
+.custom-select:focus {
+  outline: none;
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.25);
+}
+
+/* Flecha del select */
+.custom-select-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #6b7280;
+  transition: transform 0.2s;
+}
+
+.custom-select-container.open .custom-select-arrow {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* Estilos para versión inline del select */
+.custom-select-inline {
+  background-color: transparent;
+  border: 1px solid #e5e7eb;
+  border-radius: 2rem;
+  padding: 0.35rem 2rem 0.35rem 1rem;
+  font-size: 0.85rem;
+}
+
+/* Select con íconos */
+.custom-select-with-icon {
+  padding-left: 2.5rem;
+}
+
+.custom-select-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--secondary-color);
+}
+
+/* Select para tamaño de página */
+.page-size-select {
+  min-width: 60px;
+  text-align: center;
+  background-color: #f3f4f6;
+  border-radius: 2rem;
+  border: 1px solid #e5e7eb;
+  padding: 0.25rem 1.5rem 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.page-size-container .custom-select-arrow {
+  right: 8px;
+}
+
+/* Select para filtros */
+.filter-select {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  padding: 0.35rem 2rem 0.35rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+/* Select para estados */
+.status-select {
+  font-weight: 500;
+  min-width: 140px;
+  background-color: #ede9fe;
+  border: 1px solid var(--light-purple);
+  padding: 0.4rem 2rem 0.4rem 1rem;
+}
+
+.status-option-pending {
+  color: #6b7280;
+}
+
+.status-option-in-progress {
+  color: var(--secondary-color);
+}
+
+.status-option-completed {
+  color: #10b981;
+}
+
+.status-option-cancelled {
+  color: #ef4444;
+}
+
+/* Aplicar colores al select basado en la opción seleccionada */
+select.status-option-pending {
+  color: #6b7280;
+}
+
+select.status-option-in-progress {
+  color: var(--secondary-color);
+}
+
+select.status-option-completed {
+  color: #10b981;
+}
+
+select.status-option-cancelled {
+  color: #ef4444;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .custom-select {
+    padding: 0.625rem 2rem 0.625rem 1rem;
+    font-size: 1rem;
+  }
+  
+  .status-select {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+}
